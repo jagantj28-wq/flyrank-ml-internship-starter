@@ -1,0 +1,29 @@
+{
+  "assignment": "ML-05_w04_baseline_score",
+  "lane": "Lane 2: Refresh / Content Opportunity Scoring",
+  "base_rate": 0.542,
+  "baseline_rule": {
+    "score_formula": "(days_since_last_update / 30.0) * ln(1 + impressions_90d) * I(avg_position in [3, 20]) * I(impressions_90d >= 1000)",
+    "flagged_for_refresh_count": 5907,
+    "precision_at_10": 0.900,
+    "precision_at_50": 0.460
+  },
+  "signal_audit": {
+    "signal_1_freshness_tier": {
+      "linked_flag": "FlyRank Content Refresh Flags",
+      "verdict": "MIXED",
+      "note": "Decline rate rises from 51.1% (0-30d) to 61.1% (91-180d), with 180d+ evergreen survivorship drop to 47.1%."
+    },
+    "signal_2_position_tier": {
+      "linked_flag": "SERP Exposure Vulnerability",
+      "verdict": "CONFIRMED",
+      "note": "Striking distance (61.0%) and Page 1 (57.0%) suffer highest decline rates; Top-3 is resilient at 24.1%."
+    }
+  },
+  "weak_pick_identified": {
+    "content_id": "content_cb7e312f5d32",
+    "rank_in_queue": 5,
+    "actual_trend": "up",
+    "reason_for_false_positive": "High CTR (2.45%) and strong search intent overcome calendar staleness (151 days)."
+  }
+}
