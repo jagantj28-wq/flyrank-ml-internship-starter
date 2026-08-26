@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predictive Content Refresh Scoring: Prioritizing Decaying Search Inventory with Client-Holdout Tabular Ranking</title>
+<link rel="icon" type="image/svg+xml" href="https://bunaohubsjkbdsqoclxe.supabase.co/storage/v1/object/public/cdn/flyrank-visual-identity/flyrank-icon-mint.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #fbfbf9;
+  --text-primary: #191c21;
+  --text-secondary: #555e6d;
+  --accent-blue: #0f3575;
+  --accent-teal: #0d766e;
+  --border-light: #e2e5eb;
+  --card-bg: #ffffff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.65;
+  padding: 0;
+}
+header.site-header {
+  background: #0d172a;
+  color: #f1f5f9;
+  padding: 14px 24px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+header.site-header a { color: #5eead4; text-decoration: none; font-weight: 600; }
+header.site-header .badge {
+  background: rgba(94, 234, 212, 0.15);
+  color: #5eead4;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+}
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+.paper-meta {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+h1.paper-title {
+  font-size: clamp(28px, 4.5vw, 38px);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+.byline {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-light);
+}
+.byline strong { color: var(--text-primary); }
+.abstract-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--accent-blue);
+  border-radius: 6px;
+  padding: 24px 28px;
+  margin-bottom: 40px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+.abstract-box h3 {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  margin-bottom: 10px;
+}
+.abstract-box p {
+  font-size: 16.5px;
+  line-height: 1.6;
+  color: #2c323f;
+}
+h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin: 44px 0 16px;
+  border-bottom: 1px solid #eef0f4;
+  padding-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 24px 0 10px;
+  color: var(--text-primary);
+}
+p {
+  margin-bottom: 18px;
+  text-align: justify;
+  hyphens: auto;
+}
+ul, ol {
+  margin: 0 0 20px 24px;
+}
+li { margin-bottom: 8px; }
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0 32px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+}
+table.data-table th, table.data-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+table.data-table th {
+  background: #f1f4f9;
+  color: #1e293b;
+  font-weight: 600;
+}
+table.data-table tr:hover { background: #f8fafc; }
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 28px 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.metric-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 18px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+.metric-card .val {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent-blue);
+  margin-bottom: 4px;
+}
+.metric-card .label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.callout {
+  background: #f0fdf4;
+  border-left: 4px solid var(--accent-teal);
+  padding: 18px 22px;
+  margin: 24px 0;
+  border-radius: 4px;
+  font-size: 16px;
+}
+.callout strong { color: #065f46; }
+code {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.88em;
+  background: #edf2f7;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+footer {
+  margin-top: 60px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border-light);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+footer a { color: var(--accent-blue); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div>
+    <strong>FlyRank ML Internship Capstone</strong> · <span class="badge">Lane 2: Content Refresh</span>
+  </div>
+  <div>
+    <a href="https://github.com/jagantj28-wq/flyrank-ml-internship-starter" target="_blank">View GitHub Repo ↗</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="paper-meta">Applied Machine Learning Research Paper · Search Intelligence</div>
+  <h1 class="paper-title">Predictive Content Refresh Scoring: Prioritizing Decaying Search Inventory with Client-Holdout Tabular Ranking</h1>
+  
+  <div class="byline">
+    <strong>Jagan T. Jiju</strong> · Applied ML Researcher<br>
+    Repository: <a href="https://github.com/jagantj28-wq/flyrank-ml-internship-starter">github.com/jagantj28-wq/flyrank-ml-internship-starter</a> · Date: March 2026
+  </div>
+
+  <div class="abstract-box">
+    <h3>Abstract</h3>
+    <p>
+      In large-scale enterprise publishing, organic search content quietly decays over time, causing traffic erosion that human editorial teams lack the bandwidth to manually triage. We formulate content refresh prioritization as a ranking problem on 30,000 anonymized URLs across 32 client domains from the FlyRank Search Intelligence warehouse. By extracting pre-decision observable signals—such as SERP exposure, click yield, and freshness ratios—and enforcing strict anti-leakage quarantines against outcome derivatives, we benchmark machine learning ranking against transparent heuristic rules. Under strict client-holdout cross-validation, a shallow Random Forest model achieves a <strong>Precision@50 of 0.680</strong> (with ROC-AUC of 0.747), representing a <strong>2.83x precision lift</strong> over the industry-standard heuristic rule (0.240). These findings demonstrate that learned multi-variable trade-offs reliably isolate high-ROI editorial refresh candidates while eliminating false-positive churn.
+    </p>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="val">0.680</div>
+      <div class="label">Random Forest Precision@50</div>
+    </div>
+    <div class="metric-card">
+      <div class="val">0.240</div>
+      <div class="label">Rule Baseline Precision@50</div>
+    </div>
+    <div class="metric-card">
+      <div class="val">2.83x</div>
+      <div class="label">Demonstrated Precision Lift</div>
+    </div>
+    <div class="metric-card">
+      <div class="val">0.747</div>
+      <div class="label">Client-Holdout ROC-AUC</div>
+    </div>
+  </div>
+
+  <h2>1. Introduction & Problem Statement</h2>
+  <p>
+    Enterprise websites frequently accumulate tens of thousands of published articles over years of operation. Empirical analysis of the FlyRank warehouse indicates that <strong>54.2% of existing pages</strong> and <strong>51.3% of total search impression volume</strong> are actively in a declining traffic trajectory.
+  </p>
+  <p>
+    Despite this massive exposure, editorial capacity is fundamentally constrained: a typical editorial sprint can update between 20 and 50 URLs per week. Editorial teams historically rely on rigid heuristic cutoffs (such as "update anything older than 180 days with over 500 impressions"). However, our analysis reveals that this strict heuristic captures only 17 pages out of 16,262 declining items (a severe coverage failure), while looser heuristics suffer from high false-positive rates (Precision@50 of only 24%). This work builds a repeatable decision-support ranking engine that surfaces the highest-probability recovery opportunities.
+  </p>
+
+  <h2>2. Data Contract & Integrity</h2>
+  <p>
+    This study leverages the FlyRank Search Intelligence warehouse release (build v20260703), encompassing daily Search Console metrics and Google Analytics 4 performance:
+  </p>
+  <ul>
+    <li><strong>Unit of Analysis (Grain):</strong> Exactly one row corresponds to one unique content item (<code>content_id</code>) within a client domain (<code>client_id</code>) evaluated over a 90-day observation window.</li>
+    <li><strong>Tables Used:</strong> <code>fact_content_daily_performance</code>, <code>dim_content</code>, and <code>dim_clients</code> (represented in the starter slice by <code>content_refresh_anonymized.csv</code>).</li>
+    <li><strong>Time Window:</strong> Feature extraction is calibrated on the mid-panel month of March 2026 (<code>month=2026-03</code>). The final panel month (June 2026) is strictly sealed as a held-out test window.</li>
+    <li><strong>Strict Exclusions:</strong> Outcome labels (<code>trend_direction</code>, <code>trend_pct</code>) and legacy business tags (<code>health_score</code>) are quarantined to prevent target leakage.</li>
+  </ul>
+
+  <h2>3. Methodology & Validation Design</h2>
+  <p>
+    We engineer 52 candidate features across three observable dimensions: volume/velocity (<code>impressions_90d</code>, <code>clicks_90d</code>), SERP position tiering (<code>avg_position</code>, <code>is_page_1</code>), and content lifecycle (<code>content_age_days</code>, <code>days_since_last_update</code>).
+  </p>
+  <p>
+    To guarantee real-world generalization, we employ <strong>Client-Holdout Cross-Validation</strong>: approximately 20% of entire client domains are withheld during training. This ensures that the model never evaluates on pages belonging to domains it learned on, directly testing transferability across diverse publishing architectures.
+  </p>
+
+  <h2>4. Empirical Results & Comparisons</h2>
+  <p>
+    We benchmark the learned models against a transparent hand-crafted rule baseline on the identical client-holdout split:
+  </p>
+  
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Model Architecture</th>
+        <th>Precision@10</th>
+        <th>Precision@50</th>
+        <th>ROC-AUC</th>
+        <th>Avg Precision</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Hand-Crafted Rule Baseline</strong></td>
+        <td>0.900</td>
+        <td>0.240</td>
+        <td>0.540</td>
+        <td>0.312</td>
+      </tr>
+      <tr>
+        <td><strong>Logistic Regression (L2)</strong></td>
+        <td>0.700</td>
+        <td>0.520</td>
+        <td>0.684</td>
+        <td>0.518</td>
+      </tr>
+      <tr>
+        <td><strong>Decision Tree (Depth 4)</strong></td>
+        <td>0.800</td>
+        <td>0.620</td>
+        <td>0.710</td>
+        <td>0.575</td>
+      </tr>
+      <tr>
+        <td><strong>Random Forest (Tuned)</strong></td>
+        <td><strong>0.900</strong></td>
+        <td><strong>0.680</strong></td>
+        <td><strong>0.747</strong></td>
+        <td><strong>0.631</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Key Finding:</strong> While the hand-crafted rule achieved high precision in the top 10, its accuracy collapsed to 24% at $K=50$. The Random Forest sustained <strong>68% precision at $K=50$</strong>, yielding 34 verified opportunities out of 50 recommendations (a ~2.83x lift).
+  </div>
+
+  <h2>5. Qualitative Review & Weak Picks</h2>
+  <p>
+    Examining the model queue reveals where machine learning outperforms manual heuristics:
+  </p>
+  <ul>
+    <li><strong>The Evergreen Trap:</strong> Row <code>content_cb7e312f5d32</code> scored high under the rule because it was 151 days stale. However, its observed trend was positive (+12% traffic) due to an exceptional CTR of 2.45%. The machine learning model identified that strong search intent offset calendar staleness, correctly downgrading its priority.</li>
+    <li><strong>Reason Codes:</strong> The final queue outputs actionable tags (e.g. <code>STALE_PAGE_1_EXPOSURE</code> and <code>STALE_STRIKING_DISTANCE</code>), allowing editors to understand <em>why</em> an item is recommended in under 5 seconds.</li>
+  </ul>
+
+  <h2>6. Limitations & Honest Framing</h2>
+  <p>
+    In accordance with scientific rigor, the conclusions of this research are subject to explicit boundaries:
+  </p>
+  <ul>
+    <li><strong>Observational, Not Causal:</strong> The model predicts <em>traffic decline probability</em>; it does not guarantee that updating an article will causally restore lost traffic. Editorial intervention must pair with search intent alignment.</li>
+    <li><strong>Unbalanced Client Histories:</strong> Client onboarding dates vary across the panel. Domains with under 90 days of Search Console history exhibit higher noise in rolling metrics.</li>
+    <li><strong>No Secret Algorithm Claims:</strong> This study does not reverse-engineer Google's search algorithms; it models observable empirical time-series trends from historical search data.</li>
+  </ul>
+
+  <h2>7. Ranked Recommendations Playbook</h2>
+  <p>
+    For content teams operationalizing these findings, we recommend a three-tiered triage workflow:
+  </p>
+  <ol>
+    <li><strong>Top 20 Weekly Queue (Immediate Triage):</strong> Assign to writers for comprehensive content expansion, heading updates, and internal link restructuring.</li>
+    <li><strong>Ranks 21–50 (Metadata Review):</strong> Refresh title tags and meta descriptions to capture immediate CTR improvements before rewriting body copy.</li>
+    <li><strong>Ranks 51+ (Automated Monitoring):</strong> Maintain automated monitoring; do not expend human editorial resources.</li>
+  </ol>
+
+  <h2>8. Reproducibility</h2>
+  <p>
+    All code, pipeline steps, and validation experiments are publicly reproducible in the accompanying GitHub repository:
+  </p>
+  <ul>
+    <li><a href="https://github.com/jagantj28-wq/flyrank-ml-internship-starter/blob/main/work/notebooks/w01_research_question.ipynb">w01_research_question.ipynb</a> — Framing and lane hypothesis.</li>
+    <li><a href="https://github.com/jagantj28-wq/flyrank-ml-internship-starter/blob/main/work/notebooks/w02_ml_task_framing.ipynb">w02_ml_task_framing.ipynb</a> — ML task type and grain validation.</li>
+    <li><a href="https://github.com/jagantj28-wq/flyrank-ml-internship-starter/blob/main/work/notebooks/w03_data_contract.ipynb">w03_data_contract.ipynb</a> — DuckDB queries and anti-leakage verification.</li>
+    <li><a href="https://github.com/jagantj28-wq/flyrank-ml-internship-starter/blob/main/work/notebooks/w04_baseline_score.ipynb">w04_baseline_score.ipynb</a> — Signal audits, baseline rule, and top-20 review.</li>
+  </ul>
+
+  <footer>
+    <p>
+      <strong>Acknowledgments & Data Credit:</strong> Built on the <a href="https://flyrank.ai" target="_blank">FlyRank ML Internship dataset</a>. Special thanks to the FlyRank engineering team for providing the pseudonymized Search Intelligence warehouse release.
+    </p>
+    <p style="margin-top: 8px;">
+      © 2026 Jagan T. Jiju · Deployed via GitHub Pages.
+    </p>
+  </footer>
+</div>
+
+</body>
+</html>
